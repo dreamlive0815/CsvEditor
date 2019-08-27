@@ -51,6 +51,29 @@ namespace CsvEditor
             changed = true;
         }
 
+        public void SaveAs(string filePath)
+        {
+            var sb = new StringBuilder();
+            var nl = Environment.NewLine;
+            var joinLine = new Action<List<string>>((lineValues) =>
+            {
+                var line = string.Join(",", lineValues);
+                sb.Append(line);
+            });
+            joinLine(types);
+            sb.Append(nl);
+            joinLine(headers);
+            sb.Append(nl);
+            for (var i = 0; i < values.Count; i++)
+            {
+                joinLine(values[i]);
+                sb.Append(nl);
+            }
+
+            File.WriteAllText(filePath, sb.ToString());
+            changed = false;
+        }
+
         public CsvVLine GetVLine(int index)
         {
             return new CsvVLine(this, values[index]);
@@ -174,28 +197,6 @@ namespace CsvEditor
         public override void Save()
         {
             SaveAs(filePath);
-        }
-
-        public void SaveAs(string filePath)
-        {
-            var sb = new StringBuilder();
-            var nl = Environment.NewLine;
-            var joinLine = new Action<List<string>>((lineValues) =>
-            {
-                var line = string.Join(",", lineValues);
-                sb.Append(line);
-            });
-            joinLine(types);
-            sb.Append(nl);
-            joinLine(headers);
-            sb.Append(nl);
-            for (var i = 0; i < values.Count; i++)
-            {
-                joinLine(values[i]);
-                sb.Append(nl);
-            }
-
-            File.WriteAllText(filePath, sb.ToString());
         }
 
         private List<string> SplitLine(string s)

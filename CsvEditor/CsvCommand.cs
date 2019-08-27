@@ -20,8 +20,36 @@ namespace CsvEditor
         
     }
 
+    enum CsvCommandType
+    {
+        Unknown,
+        Select,
+        Update,
+        Delete,
+    }
+
     abstract class CsvCommand
     {
+
+        public static CsvCommandType GetCommandType(string cmd)
+        {
+            if (CsvSelectCommand.Pattern.IsMatch(cmd)) return CsvCommandType.Select;
+
+            return CsvCommandType.Unknown;
+        }
+
+        public static CsvCommand Parse(string cmd)
+        {
+            var type = GetCommandType(cmd);
+            switch (type)
+            {
+                case CsvCommandType.Select:
+                    return new CsvSelectCommand(cmd);
+
+            }
+            throw new Exception("Unknown command type");
+        }
+
         public static List<CsvVLine> GetVLinesByCondition(Csv csv, ICondition condition)
         {
             var r = new List<CsvVLine>();
