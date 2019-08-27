@@ -1,0 +1,8 @@
+KN,S,O,O
+ID,Type,Condition Desc,Content
+1,HeroesEvolution1,合成两星英雄,#合成了★★#！
+2,HeroesEvolution2,合成三星英雄,#合成了★★★#！
+3,MultipleKills,连杀,#已经达到#连胜！
+4,OverMultipleKills,连杀终结,#终结了#的#连胜！
+5,Win,胜利,#防守住了#！
+6,Lose,失败,#被#击败了！
