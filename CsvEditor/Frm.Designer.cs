@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.listView = new System.Windows.Forms.ListView();
+            this.listView = new DoubleBufferedListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
@@ -68,7 +68,7 @@
 
         #endregion
 
-        private System.Windows.Forms.ListView listView;
+        private DoubleBufferedListView listView;
         private System.Windows.Forms.ColumnHeader columnHeader1;
     }
 }

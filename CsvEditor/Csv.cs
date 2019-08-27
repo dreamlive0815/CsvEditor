@@ -27,6 +27,12 @@ namespace CsvEditor
         protected List<List<string>> values;
 
         protected Dictionary<string, int> headerIndexes;
+        protected bool changed;
+
+        protected Csv()
+        {
+            changed = false;
+        }
 
         public List<string> Headers
         {
@@ -36,6 +42,13 @@ namespace CsvEditor
         public int VLineCount
         {
             get { return values.Count; }
+        }
+
+        public bool Changed { get { return changed; } }
+
+        public void SetChanged()
+        {
+            changed = true;
         }
 
         public CsvVLine GetVLine(int index)
@@ -74,6 +87,7 @@ namespace CsvEditor
             var headerIndex = GetHeaderIndex(header);
             value = FilterSetValue(value);
             lineValues[headerIndex] = value;
+            changed = true;
         }
 
         public abstract void Save();
@@ -122,6 +136,7 @@ namespace CsvEditor
             var index = parent.GetHeaderIndex(header);
             value = Csv.FilterSetValue(value);
             values[index] = value;
+            parent.SetChanged();
         }
 
         public override string ToString()
@@ -149,7 +164,7 @@ namespace CsvEditor
     {
         private string filePath;
 
-        public CsvFromFile(string filePath)
+        public CsvFromFile(string filePath) : base()
         {
             this.filePath = filePath;
             ParseFromFile(filePath);
@@ -249,7 +264,7 @@ namespace CsvEditor
     {
         private Csv parent;
 
-        public VirtualCsv(Csv parent, List<string> headers, List<List<string>> values)
+        public VirtualCsv(Csv parent, List<string> headers, List<List<string>> values) : base()
         {
             this.parent = parent;
             var types = new List<string>();

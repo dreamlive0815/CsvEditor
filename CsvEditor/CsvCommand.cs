@@ -20,7 +20,7 @@ namespace CsvEditor
         
     }
 
-    class CsvCommand
+    abstract class CsvCommand
     {
         public static List<CsvVLine> GetVLinesByCondition(Csv csv, ICondition condition)
         {
@@ -33,7 +33,29 @@ namespace CsvEditor
             }
             return r;
         }
+
+        public abstract CsvCommandQueryResult Query(Csv csv);
     }
+
+    enum CsvCommandQueryResultType
+    {
+        Bool,
+        Int,
+        Csv,
+    }
+
+    class CsvCommandQueryResult
+    {
+
+        public CsvCommandQueryResultType Type { get; set; }
+
+        public bool Boolean { get; set; }
+
+        public bool Integer { get; set; }
+
+        public Csv Csv { get; set; }
+    }
+
 
     class CsvSelectCommand : CsvCommand
     {
@@ -45,46 +67,22 @@ namespace CsvEditor
             var match = Pattern.Match(s);
             if (!match.Success)
                 throw new Exception("Cannot parse into select command");
-            var headers = match.Groups[1].Value;
-            var headerTokens = parser.GetTokens(headers);
-            if (headerTokens.Count == 1 && headerTokens[0] == "*")
-            {
-                AllHeaders = true;
-            }
-            else
-            {
-                AllHeaders = false;
-                Headers = headerTokens;
-            }
+            var headerStr = match.Groups[1].Value;
+            Headers = parser.ParseHeaders(headerStr);
+            AllHeaders = Headers.Count == 1 && Headers[0] == "*";
             var condition = match.Groups[2].Value;
-            if (condition.Trim() == "1" || condition.Trim().ToLower() == "true")
-                Condition = new TrueCondition();
-            else
-                Condition = parser.ParseCondition(condition);
+            Condition = parser.ParseCondition(condition);
         }
 
-        public ICondition Condition { get; }
+        public ICondition Condition { get; private set; }
 
-        public bool AllHeaders { get; }
+        public bool AllHeaders { get; private set; }
 
-        public List<string> Headers { get; }
+        public List<string> Headers { get; private set; }
 
         public Csv DoSelect(Csv csv)
         {
-            var headers = new List<string>();
-            if (AllHeaders)
-            {
-                headers = csv.Headers;
-            }
-            else
-            {
-                for (var i = 0; i < Headers.Count; i++)
-                {
-                    var header = Headers[i];
-                    if (header == ",") continue;
-                    headers.Add(header);
-                }
-            }
+            var headers = AllHeaders ? csv.Headers : Headers;
             var values = new List<List<string>>();
             var vLines = GetVLinesByCondition(csv, Condition);
             for (var i = 0; i < vLines.Count; i++)
@@ -94,6 +92,15 @@ namespace CsvEditor
             }
             var r = new VirtualCsv(csv, headers, values);
             return r;
+        }
+
+        public override CsvCommandQueryResult Query(Csv csv)
+        {
+            return new CsvCommandQueryResult()
+            {
+                Type = CsvCommandQueryResultType.Csv,
+                Csv = DoSelect(csv),
+            };
         }
     }
 
@@ -205,6 +212,9 @@ namespace CsvEditor
 
         public ICondition ParseCondition(string condition)
         {
+            condition = condition.Trim();
+            if (condition == "1" || condition.ToLower() == "true")
+                return new TrueCondition();
             var tokens = GetTokens(condition);
             var stack = new Stack<ConditionCollection>();
             var root = new ConditionCollection();
@@ -277,6 +287,19 @@ namespace CsvEditor
                 throw new Exception("Condition statement ends unexpectedly");
             }
             return root;
+        }
+
+        public List<string> ParseHeaders(string headers)
+        {
+            var tokens = GetTokens(headers);
+            var r = new List<string>();
+            for (var i = 0; i < tokens.Count; i++)
+            {
+                var token = tokens[i];
+                if (token == ",") continue;
+                r.Add(token);
+            }
+            return r;
         }
     }
 
