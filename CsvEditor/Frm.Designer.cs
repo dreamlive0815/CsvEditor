@@ -28,8 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.listView = new DoubleBufferedListView();
+            this.listView = new CsvEditor.DoubleBufferedListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // listView
@@ -38,7 +40,7 @@
             this.columnHeader1});
             this.listView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listView.Location = new System.Drawing.Point(0, 0);
-            this.listView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.listView.Margin = new System.Windows.Forms.Padding(4);
             this.listView.Name = "listView";
             this.listView.Size = new System.Drawing.Size(1272, 650);
             this.listView.TabIndex = 0;
@@ -49,11 +51,21 @@
             // 
             this.columnHeader1.Text = "dasd";
             // 
+            // dataGridView1
+            // 
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Location = new System.Drawing.Point(8, 8);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.RowTemplate.Height = 23;
+            this.dataGridView1.Size = new System.Drawing.Size(240, 150);
+            this.dataGridView1.TabIndex = 1;
+            // 
             // Frm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 22F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1272, 650);
+            this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.listView);
             this.DoubleBuffered = true;
             this.Font = new System.Drawing.Font("Consolas", 10.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -62,6 +74,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Frm_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -70,6 +83,7 @@
 
         private DoubleBufferedListView listView;
         private System.Windows.Forms.ColumnHeader columnHeader1;
+        private System.Windows.Forms.DataGridView dataGridView1;
     }
 }
 

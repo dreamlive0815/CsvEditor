@@ -12,12 +12,35 @@ namespace CsvEditor
 
         public static void Test(Csv csv)
         {
-            //var cmd = new CsvSelectCommand("select Name, 'Item_ID' where (Name = 树枝 and Category = 零件) or Name has 灵魂石");
-            var cmd = new CsvSelectCommand("select Name, 'Item_ID' where 1");
-            var data = cmd.DoSelect(csv);
+            var parser = CsvCommandParser.GetInstance();
+            parser.ParseUpdaters("Name = 11, Value = 'dasd  dasd', 'Cnt(),' = Cnt + 1");
             
         }
         
+    }
+
+    class CsvCommandRunner
+    {
+        private static CsvCommandRunner instance;
+
+        public static CsvCommandRunner GetInstance()
+        {
+            if (instance == null)
+            {
+                instance = new CsvCommandRunner();
+            }
+            return instance;
+        }
+
+        public event Action<CsvCommand, Exception> OnError; 
+
+        private CsvCommandRunner() { }
+
+        
+        public CsvCommandQueryResult Run(CsvCommand cmd)
+        {
+            return null;
+        }
     }
 
     enum CsvCommandType
@@ -62,6 +85,13 @@ namespace CsvEditor
             return r;
         }
 
+        protected CsvCommand(string s)
+        {
+            PlainCommand = s;
+        }
+
+        public string PlainCommand { get; private set; }
+
         public abstract CsvCommandQueryResult Query(Csv csv);
     }
 
@@ -79,7 +109,7 @@ namespace CsvEditor
 
         public bool Boolean { get; set; }
 
-        public bool Integer { get; set; }
+        public int Integer { get; set; }
 
         public Csv Csv { get; set; }
     }
@@ -87,9 +117,9 @@ namespace CsvEditor
 
     class CsvSelectCommand : CsvCommand
     {
-        public readonly static Regex Pattern = new Regex(@"select\s(.+?)\swhere\s(.+)", RegexOptions.IgnoreCase);
+        public readonly static Regex Pattern = new Regex(@"SELECT\s(.+?)\sWHERE\s(.+)", RegexOptions.IgnoreCase);
 
-        public CsvSelectCommand(string s)
+        public CsvSelectCommand(string s) : base(s)
         {
             var parser = CsvCommandParser.GetInstance();
             var match = Pattern.Match(s);
@@ -98,8 +128,8 @@ namespace CsvEditor
             var headerStr = match.Groups[1].Value;
             Headers = parser.ParseHeaders(headerStr);
             AllHeaders = Headers.Count == 1 && Headers[0] == "*";
-            var condition = match.Groups[2].Value;
-            Condition = parser.ParseCondition(condition);
+            var conditionStr = match.Groups[2].Value;
+            Condition = parser.ParseCondition(conditionStr);
         }
 
         public ICondition Condition { get; private set; }
@@ -128,6 +158,67 @@ namespace CsvEditor
             {
                 Type = CsvCommandQueryResultType.Csv,
                 Csv = DoSelect(csv),
+            };
+        }
+    }
+
+    
+
+    class CsvUpdater
+    {
+        public static Action<CsvVLine> GetSimpleUpdateHandler(string header, string value)
+        {
+            return new Action<CsvVLine>((vLine) =>
+            {
+                vLine.SetValue(header, value);
+            });
+        }
+
+        public Action<CsvVLine> UpdateHandler { get; set; }
+    }
+
+    class CsvUpdateCommand : CsvCommand
+    {
+        public readonly static Regex Pattern = new Regex(@"UPDATE\s+SET\s(.+?)\sWHERE\s(.+)", RegexOptions.IgnoreCase);
+
+        public CsvUpdateCommand(string s) : base(s)
+        {
+            var parser = CsvCommandParser.GetInstance();
+            var match = Pattern.Match(s);
+            if (!match.Success)
+                throw new Exception("Cannot parse into update command");
+            var updateStr = match.Groups[1].Value;
+            Updaters = parser.ParseUpdaters(updateStr);
+            var conditionStr = match.Groups[2].Value;
+            Condition = parser.ParseCondition(conditionStr);
+        }
+
+        public List<CsvUpdater> Updaters { get; private set; }
+
+        public ICondition Condition { get; private set; }
+
+        public int DoUpdate(Csv csv)
+        {
+            var values = new List<List<string>>();
+            var vLines = GetVLinesByCondition(csv, Condition);
+            for (var i = 0; i < vLines.Count; i++)
+            {
+                var vLine = vLines[i];
+                for (var j = 0; j < Updaters.Count; j++)
+                {
+                    var updater = Updaters[j];
+                    updater.UpdateHandler(vLine);
+                }
+            }
+            return vLines.Count;
+        }
+
+        public override CsvCommandQueryResult Query(Csv csv)
+        {
+            return new CsvCommandQueryResult()
+            {
+                Type = CsvCommandQueryResultType.Int,
+                Integer = DoUpdate(csv),
             };
         }
     }
@@ -197,6 +288,10 @@ namespace CsvEditor
                         addToken();
                         token.Append(ch);
                         addToken();
+                    }
+                    else
+                    {
+                        token.Append(ch);
                     }
                 }
                 else
@@ -327,6 +422,31 @@ namespace CsvEditor
                 if (token == ",") continue;
                 r.Add(token);
             }
+            return r;
+        }
+
+        public List<CsvUpdater> ParseUpdaters(string updaters)
+        {
+            var tokens = GetTokens(updaters);
+            tokens.Add(",");
+            var tokensList = new List<List<string>>();
+            var ts = new List<string>();
+            for (var i = 0; i < tokens.Count; i++)
+            {
+                var token = tokens[i];
+                if (token == ",")
+                {
+                    if (ts.Count > 0)
+                        tokensList.Add(ts);
+                    ts = new List<string>();
+                }
+                else
+                {
+                    ts.Add(token);
+                }
+            }
+
+            var r = new List<CsvUpdater>();
             return r;
         }
     }

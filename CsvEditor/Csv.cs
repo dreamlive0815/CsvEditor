@@ -14,11 +14,15 @@ namespace CsvEditor
 
         public static string FilterGetValue(string value)
         {
+            if (value.StartsWith("\"") && value.EndsWith("\""))
+                value = value.Trim('"');
             return value;
         }
 
         public static string FilterSetValue(string value)
         {
+            if (value.Contains(","))
+                value = string.Format("\"{0}\"", value);
             return value;
         }
 
@@ -114,6 +118,11 @@ namespace CsvEditor
         }
 
         public abstract void Save();
+
+        public Csv GetVirtualCsv(List<string> newHeaders)
+        {
+            return new VirtualCsv(this, newHeaders, values);
+        }
 
         protected void InitHeaderIndexes()
         {

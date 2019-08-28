@@ -70,12 +70,15 @@ namespace CsvEditor
 
         void Test()
         {
+            /*
             var csv = Csv.FromFile("../../csv/equip.csv");
             var cmd = new CsvSelectCommand("select Name, Category where (Name = 树枝 and Category = 零件) or Name has 灵魂石");
             //var cmd = new CsvSelectCommand("select * where true");
             var select = cmd.DoSelect(csv);
             DisplayCsv(select);
-            //CsvTest.Test(csv);
+            */
+
+            CsvTest.Test(null);
         }
     }
 }
