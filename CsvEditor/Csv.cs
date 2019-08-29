@@ -55,7 +55,7 @@ namespace CsvEditor
             changed = true;
         }
 
-        public void SaveAs(string filePath)
+        public virtual void SaveAs(string filePath)
         {
             var sb = new StringBuilder();
             var nl = Environment.NewLine;
@@ -70,7 +70,14 @@ namespace CsvEditor
             sb.Append(nl);
             for (var i = 0; i < values.Count; i++)
             {
-                joinLine(values[i]);
+                var vs = new List<string>();
+                for (var j = 0; j < headers.Count; j++)
+                {
+                    var header = headers[j];
+                    var headerIndex = GetHeaderIndex(header);
+                    vs.Add(values[i][headerIndex]);
+                }
+                joinLine(vs);
                 sb.Append(nl);
             }
 
@@ -192,6 +199,22 @@ namespace CsvEditor
         }
     }
 
+    class SimpleCsv : Csv
+    {
+        public SimpleCsv()
+        {
+            types = new List<string>();
+            headers = new List<string>();
+            values = new List<List<string>>();
+            InitHeaderIndexes();
+        }
+
+        public override void Save()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     class CsvFromFile : Csv
     {
         private string filePath;
@@ -206,6 +229,12 @@ namespace CsvEditor
         public override void Save()
         {
             SaveAs(filePath);
+        }
+
+        public override void SaveAs(string filePath)
+        {
+            base.SaveAs(filePath);
+            this.filePath = filePath;
         }
 
         private List<string> SplitLine(string s)

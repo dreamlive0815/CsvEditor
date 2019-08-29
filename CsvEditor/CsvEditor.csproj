@@ -46,9 +46,13 @@
   <ItemGroup>
     <Compile Include="Csv.cs" />
     <Compile Include="CsvCommand.cs" />
+    <Compile Include="DoubleBufferedDataGridView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="DoubleBufferedListView.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Extends.cs" />
     <Compile Include="Frm.cs">
       <SubType>Form</SubType>
     </Compile>

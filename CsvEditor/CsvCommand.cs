@@ -12,9 +12,9 @@ namespace CsvEditor
 
         public static void Test(Csv csv)
         {
-            var parser = CsvCommandParser.GetInstance();
-            parser.ParseUpdaters("Name = 11, Value = 'dasd  dasd', 'Cnt(),' = Cnt + 1");
-            
+            var runner = CsvCommandRunner.GetInstance();
+            var cmd = "update set Name = 古明地恋 where 1";
+            var r = runner.Run(csv, cmd);
         }
         
     }
@@ -32,14 +32,44 @@ namespace CsvEditor
             return instance;
         }
 
-        public event Action<CsvCommand, Exception> OnError; 
+        public event Action<CsvCommand, CsvCommandQueryResult> OnSuccess;
+
+        public event Action<CsvCommand, Exception> OnError;
+
 
         private CsvCommandRunner() { }
 
-        
-        public CsvCommandQueryResult Run(CsvCommand cmd)
+        public CsvCommandQueryResult Run(Csv csv, CsvCommand cmd)
         {
-            return null;
+            try
+            {
+                var res = cmd.Query(csv);
+                if (OnSuccess != null) OnSuccess.Invoke(cmd, res);
+                return res;
+            }
+            catch (Exception e)
+            {
+                if (OnError != null) OnError.Invoke(cmd, e);
+                return null;
+            }
+        }
+
+
+        public CsvCommandQueryResult Run(Csv csv, string cmdStr)
+        {
+            CsvCommand cmd = null;
+            try
+            {
+                cmd = CsvCommand.Parse(cmdStr);
+                var res = cmd.Query(csv);
+                if (OnSuccess != null) OnSuccess.Invoke(cmd, res);
+                return res;
+            }
+            catch (Exception e)
+            {
+                if (OnError != null) OnError.Invoke(cmd, e);
+                return null;
+            }
         }
     }
 
@@ -57,6 +87,7 @@ namespace CsvEditor
         public static CsvCommandType GetCommandType(string cmd)
         {
             if (CsvSelectCommand.Pattern.IsMatch(cmd)) return CsvCommandType.Select;
+            if (CsvUpdateCommand.Pattern.IsMatch(cmd)) return CsvCommandType.Update;
 
             return CsvCommandType.Unknown;
         }
@@ -68,7 +99,8 @@ namespace CsvEditor
             {
                 case CsvCommandType.Select:
                     return new CsvSelectCommand(cmd);
-
+                case CsvCommandType.Update:
+                    return new CsvUpdateCommand(cmd);
             }
             throw new Exception("Unknown command type");
         }
@@ -92,6 +124,8 @@ namespace CsvEditor
 
         public string PlainCommand { get; private set; }
 
+        public CsvCommandType CommandType { get; protected set; }
+
         public abstract CsvCommandQueryResult Query(Csv csv);
     }
 
@@ -114,7 +148,6 @@ namespace CsvEditor
         public Csv Csv { get; set; }
     }
 
-
     class CsvSelectCommand : CsvCommand
     {
         public readonly static Regex Pattern = new Regex(@"SELECT\s(.+?)\sWHERE\s(.+)", RegexOptions.IgnoreCase);
@@ -130,6 +163,7 @@ namespace CsvEditor
             AllHeaders = Headers.Count == 1 && Headers[0] == "*";
             var conditionStr = match.Groups[2].Value;
             Condition = parser.ParseCondition(conditionStr);
+            CommandType = CsvCommandType.Select;
         }
 
         public ICondition Condition { get; private set; }
@@ -162,8 +196,6 @@ namespace CsvEditor
         }
     }
 
-    
-
     class CsvUpdater
     {
         public static Action<CsvVLine> GetSimpleUpdateHandler(string header, string value)
@@ -191,6 +223,7 @@ namespace CsvEditor
             Updaters = parser.ParseUpdaters(updateStr);
             var conditionStr = match.Groups[2].Value;
             Condition = parser.ParseCondition(conditionStr);
+            CommandType = CsvCommandType.Update;
         }
 
         public List<CsvUpdater> Updaters { get; private set; }
@@ -445,9 +478,28 @@ namespace CsvEditor
                     ts.Add(token);
                 }
             }
-
             var r = new List<CsvUpdater>();
+            for (var i = 0; i < tokensList.Count; i++)
+            {
+                ts = tokensList[i];
+                var updater = GetUpdater(ts);
+                r.Add(updater);
+            }
             return r;
+        }
+
+        private CsvUpdater GetUpdater(List<string> tokens)
+        {
+            var header = tokens.GetAt(0);
+            var assignOp = tokens.GetAt(1);
+            var value = tokens.GetAt(2);
+            if (assignOp != "=")
+                throw new Exception(string.Format("Cannot find assign operator near: {0}", assignOp));
+            var handler = CsvUpdater.GetSimpleUpdateHandler(header, value);
+            return new CsvUpdater()
+            {
+                UpdateHandler = handler,
+            };
         }
     }
 
