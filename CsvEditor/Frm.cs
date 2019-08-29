@@ -151,7 +151,7 @@ namespace CsvEditor
                 var filePath = openFileDialog.FileName;
                 Text = filePath;
                 csv = Csv.FromFile(filePath);
-                DisplayCsv(csv);
+                CsvCommandRunner.GetInstance().Run(csv, "select * where 1");
             }
         }
 
@@ -213,13 +213,18 @@ namespace CsvEditor
             return r != null;
         }
 
-        private void txtCommand_KeyUp(object sender, KeyEventArgs e)
+        private void cCommand_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
-                var r = RunCommand(txtCommand.Text);
-                if (r) txtCommand.Clear();
-
+                var cmdStr = txtCommand.Text;
+                var r = RunCommand(cmdStr);
+                if (r)
+                {
+                    txtCommand.Text = string.Empty;
+                    if (!txtCommand.Items.Contains(cmdStr))
+                        txtCommand.Items.Add(cmdStr);
+                }
             }
         }
     }

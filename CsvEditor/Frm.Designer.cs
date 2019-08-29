@@ -35,7 +35,7 @@
             this.menuSaveAs = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
-            this.txtCommand = new System.Windows.Forms.ToolStripTextBox();
+            this.txtCommand = new System.Windows.Forms.ToolStripComboBox();
             this.dataGridView = new CsvEditor.DoubleBufferedDataGridView();
             this.listView = new CsvEditor.DoubleBufferedListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -50,7 +50,7 @@
             this.txtCommand});
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.Name = "menuStrip";
-            this.menuStrip.Size = new System.Drawing.Size(1272, 27);
+            this.menuStrip.Size = new System.Drawing.Size(1272, 29);
             this.menuStrip.TabIndex = 2;
             this.menuStrip.Text = "menuStrip1";
             // 
@@ -61,14 +61,14 @@
             this.menuSaveFile,
             this.menuSaveAs});
             this.menuFile.Name = "menuFile";
-            this.menuFile.Size = new System.Drawing.Size(58, 23);
+            this.menuFile.Size = new System.Drawing.Size(58, 25);
             this.menuFile.Text = "文件(&F)";
             // 
             // menuOpenFile
             // 
             this.menuOpenFile.Name = "menuOpenFile";
-            this.menuOpenFile.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-            this.menuOpenFile.Size = new System.Drawing.Size(157, 22);
+            this.menuOpenFile.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
+            this.menuOpenFile.Size = new System.Drawing.Size(191, 22);
             this.menuOpenFile.Text = "打开";
             this.menuOpenFile.Click += new System.EventHandler(this.menuOpenFile_Click);
             // 
@@ -76,15 +76,16 @@
             // 
             this.menuSaveFile.Name = "menuSaveFile";
             this.menuSaveFile.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.menuSaveFile.Size = new System.Drawing.Size(157, 22);
+            this.menuSaveFile.Size = new System.Drawing.Size(191, 22);
             this.menuSaveFile.Text = "保存";
             this.menuSaveFile.Click += new System.EventHandler(this.menuSaveFile_Click);
             // 
             // menuSaveAs
             // 
             this.menuSaveAs.Name = "menuSaveAs";
-            this.menuSaveAs.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
-            this.menuSaveAs.Size = new System.Drawing.Size(157, 22);
+            this.menuSaveAs.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.A)));
+            this.menuSaveAs.Size = new System.Drawing.Size(191, 22);
             this.menuSaveAs.Text = "另存为";
             this.menuSaveAs.Click += new System.EventHandler(this.menuSaveAs_Click);
             // 
@@ -101,17 +102,17 @@
             // txtCommand
             // 
             this.txtCommand.Name = "txtCommand";
-            this.txtCommand.Size = new System.Drawing.Size(400, 23);
-            this.txtCommand.KeyUp += new System.Windows.Forms.KeyEventHandler(this.txtCommand_KeyUp);
+            this.txtCommand.Size = new System.Drawing.Size(400, 25);
+            this.txtCommand.KeyUp += new System.Windows.Forms.KeyEventHandler(this.cCommand_KeyUp);
             // 
             // dataGridView
             // 
             this.dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridView.Location = new System.Drawing.Point(0, 27);
+            this.dataGridView.Location = new System.Drawing.Point(0, 29);
             this.dataGridView.Name = "dataGridView";
             this.dataGridView.RowTemplate.Height = 23;
-            this.dataGridView.Size = new System.Drawing.Size(1272, 623);
+            this.dataGridView.Size = new System.Drawing.Size(1272, 621);
             this.dataGridView.TabIndex = 1;
             this.dataGridView.KeyUp += new System.Windows.Forms.KeyEventHandler(this.dataGridView_KeyUp);
             // 
@@ -120,10 +121,10 @@
             this.listView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1});
             this.listView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listView.Location = new System.Drawing.Point(0, 27);
+            this.listView.Location = new System.Drawing.Point(0, 29);
             this.listView.Margin = new System.Windows.Forms.Padding(4);
             this.listView.Name = "listView";
-            this.listView.Size = new System.Drawing.Size(1272, 623);
+            this.listView.Size = new System.Drawing.Size(1272, 621);
             this.listView.TabIndex = 0;
             this.listView.UseCompatibleStateImageBehavior = false;
             this.listView.View = System.Windows.Forms.View.Details;
@@ -169,7 +170,7 @@
         private System.Windows.Forms.ToolStripMenuItem menuSaveAs;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
-        private System.Windows.Forms.ToolStripTextBox txtCommand;
+        private System.Windows.Forms.ToolStripComboBox txtCommand;
     }
 }
 
