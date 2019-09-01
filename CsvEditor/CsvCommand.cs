@@ -7,17 +7,6 @@ using System.Threading.Tasks;
 
 namespace CsvEditor
 {
-    class CsvTest
-    {
-
-        public static void Test(Csv csv)
-        {
-            var runner = CsvCommandRunner.GetInstance();
-            var cmd = "update set Name = 古明地恋 where 1";
-            var r = runner.Run(csv, cmd);
-        }
-        
-    }
 
     class CsvCommandRunner
     {
@@ -83,7 +72,6 @@ namespace CsvEditor
 
     abstract class CsvCommand
     {
-
         public static CsvCommandType GetCommandType(string cmd)
         {
             if (CsvSelectCommand.Pattern.IsMatch(cmd)) return CsvCommandType.Select;
@@ -314,7 +302,7 @@ namespace CsvEditor
                 {
                     inQuote = !inQuote;
                 }
-                else if (ch == '(' || ch == ')' || ch == ',')
+                else if (ch == '(' || ch == ')' || ch == ',' || ch == '[' || ch == ']')
                 {
                     if (!inQuote)
                     {
@@ -375,10 +363,20 @@ namespace CsvEditor
             var stack = new Stack<ConditionCollection>();
             var root = new ConditionCollection();
             stack.Push(root);
+            var curContextOperator = ContextOperator.And;
+            var ts = new List<string>();
+            var addCondition = new Action(() =>
+            {
+                if (ts.Count > 0)
+                {
+                    var c = GetCondition(ts);
+                    c.ContextOperator = curContextOperator;
+                    stack.Peek().Add(c);
+                }
+                ts = new List<string>();
+            });
             var curTokenType = ConditionTokenType.Key;
             var nextTokenType = ConditionTokenType.Key;
-            var curContextOperator = ContextOperator.And;
-            var curCondition = new TernaryCondition();
             for (var i = 0; i < tokens.Count; i++)
             {
                 var token = tokens[i];
@@ -386,6 +384,7 @@ namespace CsvEditor
                 {
                     var child = new ConditionCollection();
                     child.ContextOperator = curContextOperator;
+                    curContextOperator = ContextOperator.And;
                     stack.Peek().Add(child);
                     stack.Push(child);
                     nextTokenType = ConditionTokenType.Key;
@@ -393,6 +392,7 @@ namespace CsvEditor
                 }
                 if (token == ")")
                 {
+                    addCondition();
                     if (stack.Count == 1)
                         throw new Exception("Unexpected char ')'");
                     stack.Pop();
@@ -400,49 +400,67 @@ namespace CsvEditor
                     continue;
                 }
                 curTokenType = nextTokenType;
-                switch (curTokenType)
+                var tokenLower = token.ToLower();
+                if (contextOperatorMap.ContainsKey(tokenLower))
                 {
-                    case ConditionTokenType.Key:
-                        curCondition.Key = token;
-                        nextTokenType = ConditionTokenType.Operator;
-                        break;
-                    case ConditionTokenType.Operator:
-                        token = token.ToLower();
-                        var isOperator = false;
-                        if (ternaryOperatorMap.ContainsKey(token))
-                        {
-                            isOperator = true;
-                            curCondition.Operator = ternaryOperatorMap[token];
-                            nextTokenType = ConditionTokenType.Value;
-                        }
-                        if (!isOperator)
-                            throw new Exception(string.Format("Unsupported operator: {0}", token));
-                        break;
-                    case ConditionTokenType.Value:
-                        curCondition.Value = token;
-                        nextTokenType = ConditionTokenType.ContextOperator;
-                        break;
-                    case ConditionTokenType.ContextOperator:
-                        token = token.ToLower();
-                        if (!contextOperatorMap.ContainsKey(token))
-                            throw new Exception(string.Format("Unsupported context operator: {0}", token));
-                        curContextOperator = contextOperatorMap[token];
-                        nextTokenType = ConditionTokenType.Key;
-                        break;
+                    addCondition();
+                    curContextOperator = contextOperatorMap[tokenLower];
+                    nextTokenType = ConditionTokenType.Key;
                 }
-                if (curTokenType == ConditionTokenType.Value)
+                else
                 {
-                    curCondition.ContextOperator = curContextOperator;
-                    stack.Peek().Add(curCondition);
-                    curCondition = new TernaryCondition();
+                    if (curTokenType == ConditionTokenType.ContextOperator)
+                        throw new Exception(string.Format("The token: {0} is not context operator", token));
+                    ts.Add(token);
                 }
             }
-
-            if (curTokenType != ConditionTokenType.Value)
-            {
-                throw new Exception("Condition statement ends unexpectedly");
-            }
+            addCondition();
             return root;
+        }
+
+        public ICondition GetCondition(List<string> tokens)
+        {
+            var key = tokens.GetAt(0);
+            var op = tokens.GetAt(1);
+            if (string.IsNullOrEmpty(op))
+                throw new Exception(string.Format("Cannot find operator near: {0}", string.Join(" ", tokens)));
+            var opLower = op.ToLower();
+            var getValue = new Func<string>(() =>
+            {
+                return tokens.GetAt(2);
+            });
+            var getValues = new Func<List<string>>(() =>
+            {
+                var values = new List<string>();
+                for (var i = 2; i < tokens.Count; i++)
+                {
+                    var token = tokens[i];
+                    if (token == "," || token == "[" || token == "]")
+                    {
+                        if (i % 2 == 0) continue;
+                    }
+                    values.Add(token);
+                }
+                return values;
+            });
+            if (ternaryOperatorMap.ContainsKey(opLower))
+            {
+                return new TernaryCondition()
+                {
+                    Key = key,
+                    Operator = ternaryOperatorMap[opLower],
+                    Value = getValue(),
+                };
+            }
+            else if (opLower == "in")
+            {
+                return new InCondition()
+                {
+                    Key = key,
+                    Values = getValues(),
+                };
+            }
+            throw new Exception(string.Format("Unsupported operator: {0}", op));
         }
 
         public List<string> ParseHeaders(string headers)
@@ -593,6 +611,26 @@ namespace CsvEditor
                 default:
                     throw new Exception("Unsupported ternary operator");
             }
+        }
+    }
+
+    class InCondition : ICondition
+    {
+        public string Key { get; set; }
+
+        public List<string> Values { get; set; }
+
+        public ContextOperator ContextOperator { get; set; }
+
+        public bool GetBool(CsvVLine line)
+        {
+            var v = line.GetValue(Key);
+            for (var i = 0; i < Values.Count; i++)
+            {
+                var value = Values[i];
+                if (value == v) return true;
+            }
+            return false;
         }
     }
 

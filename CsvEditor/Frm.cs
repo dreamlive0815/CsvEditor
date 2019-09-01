@@ -30,7 +30,8 @@ namespace CsvEditor
         {
 
             RegisterCommandEvents();
-            
+            InitDialogs();
+
         }
 
         void RegisterCommandEvents()
@@ -38,6 +39,12 @@ namespace CsvEditor
             var runner = CsvCommandRunner.GetInstance();
             runner.OnSuccess += Runner_OnSuccess;
             runner.OnError += Runner_OnError;
+        }
+
+        void InitDialogs()
+        {
+            openFileDialog.InitialDirectory = Environment.CurrentDirectory;
+            saveFileDialog.InitialDirectory = Environment.CurrentDirectory;
         }
 
         private void Runner_OnError(CsvCommand cmd, Exception e)
@@ -151,8 +158,18 @@ namespace CsvEditor
                 var filePath = openFileDialog.FileName;
                 Text = filePath;
                 csv = Csv.FromFile(filePath);
-                CsvCommandRunner.GetInstance().Run(csv, "select * where 1");
+                DisplayAll();
             }
+        }
+
+        void DisplayAll()
+        {
+            if (csv == null)
+            {
+                MessageBox.Show("请先打开文件");
+                return;
+            }
+            CsvCommandRunner.GetInstance().Run(csv, "select * where 1");
         }
 
         private void menuOpenFile_Click(object sender, EventArgs e)
@@ -226,6 +243,11 @@ namespace CsvEditor
                         txtCommand.Items.Add(cmdStr);
                 }
             }
+        }
+
+        private void menuDisplayAll_Click(object sender, EventArgs e)
+        {
+            DisplayAll();
         }
     }
 }
