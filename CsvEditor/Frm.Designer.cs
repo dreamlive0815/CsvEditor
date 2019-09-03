@@ -33,14 +33,17 @@
             this.menuOpenFile = new System.Windows.Forms.ToolStripMenuItem();
             this.menuSaveFile = new System.Windows.Forms.ToolStripMenuItem();
             this.menuSaveAs = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuDisplay = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuDisplayAll = new System.Windows.Forms.ToolStripMenuItem();
             this.txtCommand = new System.Windows.Forms.ToolStripComboBox();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.listBox1 = new System.Windows.Forms.ListBox();
+            this.menuCommand = new System.Windows.Forms.ToolStripMenuItem();
             this.dataGridView = new CsvEditor.DoubleBufferedDataGridView();
             this.listView = new CsvEditor.DoubleBufferedListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.menuDisplay = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuDisplayAll = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuRun = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
             this.SuspendLayout();
@@ -51,7 +54,8 @@
             this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuFile,
             this.menuDisplay,
-            this.txtCommand});
+            this.txtCommand,
+            this.menuCommand});
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.Name = "menuStrip";
             this.menuStrip.Size = new System.Drawing.Size(1272, 32);
@@ -93,6 +97,22 @@
             this.menuSaveAs.Text = "另存为";
             this.menuSaveAs.Click += new System.EventHandler(this.menuSaveAs_Click);
             // 
+            // menuDisplay
+            // 
+            this.menuDisplay.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuDisplayAll});
+            this.menuDisplay.Name = "menuDisplay";
+            this.menuDisplay.Size = new System.Drawing.Size(72, 28);
+            this.menuDisplay.Text = "显示(&D)";
+            // 
+            // menuDisplayAll
+            // 
+            this.menuDisplayAll.Name = "menuDisplayAll";
+            this.menuDisplayAll.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D)));
+            this.menuDisplayAll.Size = new System.Drawing.Size(201, 26);
+            this.menuDisplayAll.Text = "显示全部";
+            this.menuDisplayAll.Click += new System.EventHandler(this.menuDisplayAll_Click);
+            // 
             // txtCommand
             // 
             this.txtCommand.Name = "txtCommand";
@@ -108,6 +128,23 @@
             // 
             this.saveFileDialog.DefaultExt = "csv";
             this.saveFileDialog.Filter = "Csv文件|*.csv";
+            // 
+            // listBox1
+            // 
+            this.listBox1.FormattingEnabled = true;
+            this.listBox1.ItemHeight = 22;
+            this.listBox1.Location = new System.Drawing.Point(322, 70);
+            this.listBox1.Name = "listBox1";
+            this.listBox1.Size = new System.Drawing.Size(303, 92);
+            this.listBox1.TabIndex = 3;
+            // 
+            // menuCommand
+            // 
+            this.menuCommand.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuRun});
+            this.menuCommand.Name = "menuCommand";
+            this.menuCommand.Size = new System.Drawing.Size(71, 28);
+            this.menuCommand.Text = "命令(&C)";
             // 
             // dataGridView
             // 
@@ -138,27 +175,20 @@
             // 
             this.columnHeader1.Text = "dasd";
             // 
-            // menuDisplay
+            // menuRun
             // 
-            this.menuDisplay.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.menuDisplayAll});
-            this.menuDisplay.Name = "menuDisplay";
-            this.menuDisplay.Size = new System.Drawing.Size(72, 28);
-            this.menuDisplay.Text = "显示(&D)";
-            // 
-            // menuDisplayAll
-            // 
-            this.menuDisplayAll.Name = "menuDisplayAll";
-            this.menuDisplayAll.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D)));
-            this.menuDisplayAll.Size = new System.Drawing.Size(201, 26);
-            this.menuDisplayAll.Text = "显示全部";
-            this.menuDisplayAll.Click += new System.EventHandler(this.menuDisplayAll_Click);
+            this.menuRun.Name = "menuRun";
+            this.menuRun.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
+            this.menuRun.Size = new System.Drawing.Size(181, 26);
+            this.menuRun.Text = "执行";
+            this.menuRun.Click += new System.EventHandler(this.menuRun_Click);
             // 
             // Frm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 22F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1272, 650);
+            this.Controls.Add(this.listBox1);
             this.Controls.Add(this.dataGridView);
             this.Controls.Add(this.listView);
             this.Controls.Add(this.menuStrip);
@@ -193,6 +223,9 @@
         private System.Windows.Forms.ToolStripComboBox txtCommand;
         private System.Windows.Forms.ToolStripMenuItem menuDisplay;
         private System.Windows.Forms.ToolStripMenuItem menuDisplayAll;
+        private System.Windows.Forms.ListBox listBox1;
+        private System.Windows.Forms.ToolStripMenuItem menuCommand;
+        private System.Windows.Forms.ToolStripMenuItem menuRun;
     }
 }
 

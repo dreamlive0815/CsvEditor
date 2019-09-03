@@ -131,6 +131,11 @@ namespace CsvEditor
             return new VirtualCsv(this, newHeaders, values);
         }
 
+        protected void Init()
+        {
+            InitHeaderIndexes();
+        }
+
         protected void InitHeaderIndexes()
         {
             headerIndexes = new Dictionary<string, int>();
@@ -206,7 +211,7 @@ namespace CsvEditor
             types = new List<string>();
             headers = new List<string>();
             values = new List<List<string>>();
-            InitHeaderIndexes();
+            Init();
         }
 
         public override void Save()
@@ -223,7 +228,7 @@ namespace CsvEditor
         {
             this.filePath = filePath;
             ParseFromFile(filePath);
-            InitHeaderIndexes();
+            Init();
         }
 
         public override void Save()
@@ -318,7 +323,7 @@ namespace CsvEditor
             this.types = types;
             this.headers = headers;
             this.values = values;
-            InitHeaderIndexes();
+            Init();
         }
 
         public override int GetHeaderIndex(string header)

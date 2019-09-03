@@ -101,6 +101,11 @@ namespace CsvEditor
                 }
                 dt.Rows.Add(dRow);
             }
+            dt.ColumnChanged += (s, e) =>
+            {
+                
+                
+            };
             return dt;
         }
 
@@ -248,6 +253,24 @@ namespace CsvEditor
         private void menuDisplayAll_Click(object sender, EventArgs e)
         {
             DisplayAll();
+        }
+
+        string GetTokenNearFocus()
+        {
+            var s = txtCommand.Text;
+            if (s == string.Empty) return "";
+            var offset = txtCommand.SelectionStart;
+            if (offset >= s.Length || (offset > 0 && s[offset] == ' ')) offset--;
+            var left = offset;
+            while (left > 0 && s[left] != ' ') left--;
+            var right = offset;
+            while (right < s.Length - 1 && s[right] != ' ') right++;
+            return s.Substring(left, right - left + 1);
+        }
+
+        private void menuRun_Click(object sender, EventArgs e)
+        {
+            var token = GetTokenNearFocus();
         }
     }
 }
