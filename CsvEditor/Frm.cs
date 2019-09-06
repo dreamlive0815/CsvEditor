@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -16,9 +17,13 @@ namespace CsvEditor
 
         private Csv csv;
 
+        private string filePath;
+
         private Csv displayingCsv;
 
         private CsvCommand lastSelectCommand;
+
+        private int left, right;
 
 
         public Frm()
@@ -29,9 +34,30 @@ namespace CsvEditor
         private void Frm_Load(object sender, EventArgs e)
         {
 
-            RegisterCommandEvents();
-            InitDialogs();
 
+            InitDialogs();
+            InitList();
+
+            RegisterCommandEvents();
+            
+        }
+
+        void InitDialogs()
+        {
+            openFileDialog.InitialDirectory = Environment.CurrentDirectory;
+            saveFileDialog.InitialDirectory = Environment.CurrentDirectory;
+            openFileDialog.RestoreDirectory = true;
+            saveFileDialog.RestoreDirectory = true;
+        }
+
+        void InitList()
+        {
+            list.LostFocus += List_LostFocus;
+        }
+
+        private void List_LostFocus(object sender, EventArgs e)
+        {
+            list.SelectedIndex = -1;
         }
 
         void RegisterCommandEvents()
@@ -40,12 +66,7 @@ namespace CsvEditor
             runner.OnSuccess += Runner_OnSuccess;
             runner.OnError += Runner_OnError;
         }
-
-        void InitDialogs()
-        {
-            openFileDialog.InitialDirectory = Environment.CurrentDirectory;
-            saveFileDialog.InitialDirectory = Environment.CurrentDirectory;
-        }
+        
 
         private void Runner_OnError(CsvCommand cmd, Exception e)
         {
@@ -70,6 +91,7 @@ namespace CsvEditor
                 case CsvCommandQueryResultType.Int:
                     if (lastSelectCommand != null)
                         CsvCommandRunner.GetInstance().Run(csv, lastSelectCommand);
+                    UpdateText();
                     break;
             }
         }
@@ -103,8 +125,11 @@ namespace CsvEditor
             }
             dt.ColumnChanged += (s, e) =>
             {
-                
-                
+                var index = dt.Rows.IndexOf(e.Row);
+                if (index == -1) return;
+                var vLine = csv.GetVLine(index);
+                vLine.SetValue(e.Column.ColumnName, e.ProposedValue.ToString());
+                UpdateText();
             };
             return dt;
         }
@@ -112,6 +137,17 @@ namespace CsvEditor
         void DisplayCsvWithDataGridView(Csv csv)
         {
             dataGridView.DataSource = GetDataTable(csv);
+            list.Items.Clear();
+            for (var i = 0; i < csv.Headers.Count; i++)
+            {
+                var header = csv.Headers[i];
+                var item = new CsvListBoxItem()
+                {
+                    DisplayValue = header,
+                    Value = header,
+                };
+                list.Items.Add(item);
+            }
         }
 
         void DisplayCsvWithListView(Csv csv)
@@ -151,6 +187,11 @@ namespace CsvEditor
             listView.EndUpdate();
         }
 
+        void UpdateText()
+        {
+            Text = string.Format("{0}{1}", filePath, csv.Changed ? "[未保存]" : "");
+        }
+
         void OpenFile()
         {
             if (csv != null && csv.Changed)
@@ -161,9 +202,11 @@ namespace CsvEditor
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 var filePath = openFileDialog.FileName;
-                Text = filePath;
+                this.filePath = filePath;
                 csv = Csv.FromFile(filePath);
                 DisplayAll();
+                openFileDialog.InitialDirectory = new FileInfo(filePath).DirectoryName;
+                UpdateText();
             }
         }
 
@@ -187,6 +230,7 @@ namespace CsvEditor
             if (csv == null)
                 return;
             csv.Save();
+            UpdateText();
         }
 
         private void menuSaveFile_Click(object sender, EventArgs e)
@@ -202,6 +246,8 @@ namespace CsvEditor
             {
                 var filePath = saveFileDialog.FileName;
                 csv.SaveAs(filePath);
+                saveFileDialog.InitialDirectory = new FileInfo(filePath).DirectoryName;
+                UpdateText();
             }
         }
 
@@ -261,9 +307,9 @@ namespace CsvEditor
             if (s == string.Empty) return "";
             var offset = txtCommand.SelectionStart;
             if (offset >= s.Length || (offset > 0 && s[offset] == ' ')) offset--;
-            var left = offset;
+            left = offset;
             while (left > 0 && s[left] != ' ') left--;
-            var right = offset;
+            right = offset;
             while (right < s.Length - 1 && s[right] != ' ') right++;
             return s.Substring(left, right - left + 1);
         }
@@ -271,6 +317,31 @@ namespace CsvEditor
         private void menuRun_Click(object sender, EventArgs e)
         {
             var token = GetTokenNearFocus();
+        }
+
+        private void Frm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (csv == null) return;
+            if (csv.Changed)
+            {
+                var r = MessageBox.Show(string.Format("文件:{0}有内容尚未保存,需要保存吗?", filePath), "保存", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
+                if (r == DialogResult.Yes)
+                    csv.Save();
+                else if (r == DialogResult.Cancel)
+                    e.Cancel = true;
+            }
+        }
+
+        class CsvListBoxItem
+        {
+            public string DisplayValue { get; set; }
+
+            public string Value { get; set; }
+
+            public override string ToString()
+            {
+                return DisplayValue;
+            }
         }
     }
 }

@@ -50,7 +50,9 @@ namespace CsvEditor
 
         public bool Changed { get { return changed; } }
 
-        public void SetChanged()
+        public string Identity { get; set; }
+
+        public virtual void SetChanged()
         {
             changed = true;
         }
@@ -229,6 +231,7 @@ namespace CsvEditor
             this.filePath = filePath;
             ParseFromFile(filePath);
             Init();
+            SetIndentity();
         }
 
         public override void Save()
@@ -302,6 +305,14 @@ namespace CsvEditor
                 }
             }
         }
+
+        private void SetIndentity()
+        {
+            var fileInfo = new FileInfo(filePath);
+            var name = fileInfo.Name.Replace(fileInfo.Extension, "");
+            name = name.ToLower();
+            Identity = name;
+        }
     }
 
     class VirtualCsv : Csv
@@ -324,6 +335,12 @@ namespace CsvEditor
             this.headers = headers;
             this.values = values;
             Init();
+        }
+
+        public override void SetChanged()
+        {
+            base.SetChanged();
+            parent.SetChanged();
         }
 
         public override int GetHeaderIndex(string header)
